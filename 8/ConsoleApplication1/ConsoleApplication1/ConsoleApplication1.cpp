@@ -123,7 +123,6 @@ public:
     }
 };
 
-// Simplified input function without <limits>
 template <typename T>
 T getNumberInput(const string& prompt, T minVal, T maxVal) {
     T value;
@@ -159,23 +158,19 @@ public:
         }
     }
 
-    // Copy constructor
     PrintEditionCollection(const PrintEditionCollection& other) {
         for (const auto& edition : other.editions) {
             editions.push_back(edition->clone());
         }
     }
 
-    // Assignment operator
     PrintEditionCollection& operator=(const PrintEditionCollection& other) {
         if (this != &other) {
-            // Clear existing editions
             for (auto edition : editions) {
                 delete edition;
             }
             editions.clear();
 
-            // Copy editions from the other collection
             for (const auto& edition : other.editions) {
                 editions.push_back(edition->clone());
             }
