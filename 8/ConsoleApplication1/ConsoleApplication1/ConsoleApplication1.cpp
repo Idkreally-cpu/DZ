@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <memory>
 
 using namespace std;
 
@@ -10,19 +11,16 @@ protected:
     int pageCount;
 
 public:
-    PrintEdition() : title(""), pageCount(0) {}
+    PrintEdition(const string& title = "", int pageCount = 0) : title(title), pageCount(max(pageCount, 0)) {}
 
-    PrintEdition(const string& title, int pageCount) :
-        title(title), pageCount(pageCount < 0 ? 0 : pageCount) {}
-
-    virtual ~PrintEdition() {}
+    virtual ~PrintEdition() = default;
 
     virtual void display() const {
-        cout << "Печатное издание: " << title << ", Страниц: " << pageCount;
+        cout << "РќР°Р·РІР°РЅРёРµ: " << title << ", РЎС‚СЂР°РЅРёС†: " << pageCount;
     }
 
-    virtual PrintEdition* clone() const {
-        return new PrintEdition(*this);
+    virtual unique_ptr<PrintEdition> clone() const {
+        return make_unique<PrintEdition>(*this);
     }
 
     virtual bool operator==(const PrintEdition& other) const {
@@ -31,95 +29,74 @@ public:
 };
 
 class Magazine : public PrintEdition {
-private:
     string periodicity;
     int issueNumber;
 
 public:
-    Magazine() : PrintEdition(), periodicity(""), issueNumber(0) {}
-
-    Magazine(const string& title, int pageCount, const string& periodicity, int issueNumber)
-        : PrintEdition(title, pageCount), periodicity(periodicity),
-        issueNumber(issueNumber < 0 ? 0 : issueNumber) {}
+    Magazine(const string& title = "", int pageCount = 0, const string& periodicity = "", int issueNumber = 0)
+        : PrintEdition(title, pageCount), periodicity(periodicity), issueNumber(max(issueNumber, 0)) {}
 
     void display() const override {
         PrintEdition::display();
-        cout << ", Периодичность: " << periodicity << ", Номер выпуска: " << issueNumber;
+        cout << ", РџРµСЂРёРѕРґРёС‡РЅРѕСЃС‚СЊ: " << periodicity << ", РќРѕРјРµСЂ РІС‹РїСѓСЃРєР°: " << issueNumber;
     }
 
-    PrintEdition* clone() const override {
-        return new Magazine(*this);
+    unique_ptr<PrintEdition> clone() const override {
+        return make_unique<Magazine>(*this);
     }
 
     bool operator==(const PrintEdition& other) const override {
-        const Magazine* p = dynamic_cast<const Magazine*>(&other);
-        if (!p) return false;
-
-        return PrintEdition::operator==(other) &&
-            periodicity == p->periodicity &&
-            issueNumber == p->issueNumber;
+        if (const auto* p = dynamic_cast<const Magazine*>(&other))
+            return PrintEdition::operator==(other) && periodicity == p->periodicity && issueNumber == p->issueNumber;
+        return false;
     }
 };
 
 class Book : public PrintEdition {
-private:
     string author;
     int yearPublished;
 
 public:
-    Book() : PrintEdition(), author(""), yearPublished(0) {}
-
-    Book(const string& title, int pageCount, const string& author, int yearPublished)
-        : PrintEdition(title, pageCount), author(author),
-        yearPublished((yearPublished < 0 || yearPublished > 2025) ? 0 : yearPublished) {}
+    Book(const string& title = "", int pageCount = 0, const string& author = "", int yearPublished = 0)
+        : PrintEdition(title, pageCount), author(author), yearPublished(yearPublished < 0 || yearPublished > 2025 ? 0 : yearPublished) {}
 
     void display() const override {
         PrintEdition::display();
-        cout << ", Автор: " << author << ", Год издания: " << yearPublished;
+        cout << ", РђРІС‚РѕСЂ: " << author << ", Р“РѕРґ РёР·РґР°РЅРёСЏ: " << yearPublished;
     }
 
-    PrintEdition* clone() const override {
-        return new Book(*this);
+    unique_ptr<PrintEdition> clone() const override {
+        return make_unique<Book>(*this);
     }
 
     bool operator==(const PrintEdition& other) const override {
-        const Book* p = dynamic_cast<const Book*>(&other);
-        if (!p) return false;
-
-        return PrintEdition::operator==(other) &&
-            author == p->author &&
-            yearPublished == p->yearPublished;
+        if (const auto* p = dynamic_cast<const Book*>(&other))
+            return PrintEdition::operator==(other) && author == p->author && yearPublished == p->yearPublished;
+        return false;
     }
 };
 
 class Textbook : public PrintEdition {
-private:
     string subject;
     int gradeLevel;
 
 public:
-    Textbook() : PrintEdition(), subject(""), gradeLevel(0) {}
-
-    Textbook(const string& title, int pageCount, const string& subject, int gradeLevel)
-        : PrintEdition(title, pageCount), subject(subject),
-        gradeLevel((gradeLevel < 1 || gradeLevel > 11) ? 0 : gradeLevel) {}
+    Textbook(const string& title = "", int pageCount = 0, const string& subject = "", int gradeLevel = 0)
+        : PrintEdition(title, pageCount), subject(subject), gradeLevel(gradeLevel < 1 || gradeLevel > 11 ? 0 : gradeLevel) {}
 
     void display() const override {
         PrintEdition::display();
-        cout << ", Предмет: " << subject << ", Класс: " << gradeLevel;
+        cout << ", РџСЂРµРґРјРµС‚: " << subject << ", РљР»Р°СЃСЃ: " << gradeLevel;
     }
 
-    PrintEdition* clone() const override {
-        return new Textbook(*this);
+    unique_ptr<PrintEdition> clone() const override {
+        return make_unique<Textbook>(*this);
     }
 
     bool operator==(const PrintEdition& other) const override {
-        const Textbook* p = dynamic_cast<const Textbook*>(&other);
-        if (!p) return false;
-
-        return PrintEdition::operator==(other) &&
-            subject == p->subject &&
-            gradeLevel == p->gradeLevel;
+        if (const auto* p = dynamic_cast<const Textbook*>(&other))
+            return PrintEdition::operator==(other) && subject == p->subject && gradeLevel == p->gradeLevel;
+        return false;
     }
 };
 
@@ -129,16 +106,11 @@ T getNumberInput(const string& prompt, T minVal, T maxVal) {
     while (true) {
         cout << prompt;
         cin >> value;
-
-        if (cin.fail()) {
-            cout << "Ошибка: Введите корректное число.\n";
+        if (cin.fail() || value < minVal || value > maxVal) {
             cin.clear();
             cin.ignore(1000, '\n');
-        }
-        else if (value < minVal || value > maxVal) {
-            cout << "Ошибка: Введите число в диапазоне от " << minVal << " до " << maxVal << ".\n";
-        }
-        else {
+            cout << "РћС€РёР±РєР°: РІРІРµРґРёС‚Рµ С‡РёСЃР»Рѕ РѕС‚ " << minVal << " РґРѕ " << maxVal << ".\n";
+        } else {
             cin.ignore(1000, '\n');
             return value;
         }
@@ -146,45 +118,15 @@ T getNumberInput(const string& prompt, T minVal, T maxVal) {
 }
 
 class PrintEditionCollection {
-private:
-    vector<PrintEdition*> editions;
+    vector<unique_ptr<PrintEdition>> editions;
 
 public:
-    PrintEditionCollection() {}
-
-    ~PrintEditionCollection() {
-        for (auto edition : editions) {
-            delete edition;
-        }
-    }
-
-    PrintEditionCollection(const PrintEditionCollection& other) {
-        for (const auto& edition : other.editions) {
-            editions.push_back(edition->clone());
-        }
-    }
-
-    PrintEditionCollection& operator=(const PrintEditionCollection& other) {
-        if (this != &other) {
-            for (auto edition : editions) {
-                delete edition;
-            }
-            editions.clear();
-
-            for (const auto& edition : other.editions) {
-                editions.push_back(edition->clone());
-            }
-        }
-        return *this;
-    }
-
-    void addEdition(PrintEdition* edition) {
-        editions.push_back(edition);
+    void addEdition(unique_ptr<PrintEdition> edition) {
+        editions.push_back(move(edition));
     }
 
     bool removeEdition(size_t index) {
         if (index < editions.size()) {
-            delete editions[index];
             editions.erase(editions.begin() + index);
             return true;
         }
@@ -193,89 +135,54 @@ public:
 
     void displayAll() const {
         if (editions.empty()) {
-            cout << "Коллекция пуста." << endl;
+            cout << "РљРѕР»Р»РµРєС†РёСЏ РїСѓСЃС‚Р°.\n";
             return;
         }
-
         for (size_t i = 0; i < editions.size(); ++i) {
             cout << i << ": ";
             editions[i]->display();
-            cout << endl;
+            cout << '\n';
         }
     }
 
     bool compareEditions(size_t index1, size_t index2) const {
-        if (index1 >= editions.size() || index2 >= editions.size()) {
-            return false;
-        }
-
+        if (index1 >= editions.size() || index2 >= editions.size()) return false;
         bool result = *editions[index1] == *editions[index2];
-        cout << "Издания " << (result ? "одинаковые" : "разные") << endl;
+        cout << "РР·РґР°РЅРёСЏ " << (result ? "СЂР°РІРЅС‹" : "РЅРµ СЂР°РІРЅС‹") << '\n';
         return result;
     }
 
-    size_t size() const {
-        return editions.size();
-    }
+    size_t size() const { return editions.size(); }
 };
 
-PrintEdition* createPrintEdition() {
-    string title;
+unique_ptr<PrintEdition> createEdition(int type) {
+    string title, extra1, extra2;
+    int pageCount, extra3;
+
     cin.ignore();
-    cout << "Введите название: ";
+    cout << "Р’РІРµРґРёС‚Рµ РЅР°Р·РІР°РЅРёРµ: ";
     getline(cin, title);
+    pageCount = getNumberInput("Р’РІРµРґРёС‚Рµ РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚СЂР°РЅРёС†: ", 0, 10000);
 
-    int pageCount = getNumberInput<int>("Введите количество страниц: ", 0, 10000);
-
-    return new PrintEdition(title, pageCount);
-}
-
-PrintEdition* createMagazine() {
-    string title, periodicity;
-    cin.ignore();
-    cout << "Введите название журнала: ";
-    getline(cin, title);
-
-    int pageCount = getNumberInput<int>("Введите количество страниц: ", 0, 500);
-
-    cout << "Введите периодичность (например, 'ежемесячный'): ";
-    getline(cin, periodicity);
-
-    int issueNumber = getNumberInput<int>("Введите номер выпуска: ", 1, 1000);
-
-    return new Magazine(title, pageCount, periodicity, issueNumber);
-}
-
-PrintEdition* createBook() {
-    string title, author;
-    cin.ignore();
-    cout << "Введите название книги: ";
-    getline(cin, title);
-
-    int pageCount = getNumberInput<int>("Введите количество страниц: ", 0, 2000);
-
-    cout << "Введите автора: ";
-    getline(cin, author);
-
-    int yearPublished = getNumberInput<int>("Введите год издания: ", 0, 2025);
-
-    return new Book(title, pageCount, author, yearPublished);
-}
-
-PrintEdition* createTextbook() {
-    string title, subject;
-    cin.ignore();
-    cout << "Введите название учебника: ";
-    getline(cin, title);
-
-    int pageCount = getNumberInput<int>("Введите количество страниц: ", 0, 1000);
-
-    cout << "Введите предмет: ";
-    getline(cin, subject);
-
-    int gradeLevel = getNumberInput<int>("Введите класс (1-11): ", 1, 11);
-
-    return new Textbook(title, pageCount, subject, gradeLevel);
+    switch (type) {
+        case 1: return make_unique<PrintEdition>(title, pageCount);
+        case 2:
+            cout << "Р’РІРµРґРёС‚Рµ РїРµСЂРёРѕРґРёС‡РЅРѕСЃС‚СЊ: ";
+            getline(cin, extra1);
+            extra3 = getNumberInput("Р’РІРµРґРёС‚Рµ РЅРѕРјРµСЂ РІС‹РїСѓСЃРєР°: ", 1, 1000);
+            return make_unique<Magazine>(title, pageCount, extra1, extra3);
+        case 3:
+            cout << "Р’РІРµРґРёС‚Рµ Р°РІС‚РѕСЂР°: ";
+            getline(cin, extra1);
+            extra3 = getNumberInput("Р’РІРµРґРёС‚Рµ РіРѕРґ РёР·РґР°РЅРёСЏ: ", 0, 2025);
+            return make_unique<Book>(title, pageCount, extra1, extra3);
+        case 4:
+            cout << "Р’РІРµРґРёС‚Рµ РїСЂРµРґРјРµС‚: ";
+            getline(cin, extra1);
+            extra3 = getNumberInput("Р’РІРµРґРёС‚Рµ РєР»Р°СЃСЃ (1-11): ", 1, 11);
+            return make_unique<Textbook>(title, pageCount, extra1, extra3);
+        default: return nullptr;
+    }
 }
 
 int main() {
@@ -283,76 +190,46 @@ int main() {
     int choice;
 
     do {
-        cout << "\n=== Меню ===\n";
-        cout << "1. Добавить новый элемент\n";
-        cout << "2. Удалить элемент по индексу\n";
-        cout << "3. Вывести все элементы\n";
-        cout << "4. Сравнить два элемента\n";
-        cout << "5. Завершить работу\n";
+        cout << "\n=== РњРµРЅСЋ ===\n"
+             << "1. Р”РѕР±Р°РІРёС‚СЊ РёР·РґР°РЅРёРµ\n"
+             << "2. РЈРґР°Р»РёС‚СЊ РёР·РґР°РЅРёРµ\n"
+             << "3. РџРѕРєР°Р·Р°С‚СЊ РІСЃРµ РёР·РґР°РЅРёСЏ\n"
+             << "4. РЎСЂР°РІРЅРёС‚СЊ РёР·РґР°РЅРёСЏ\n"
+             << "5. Р’С‹Р№С‚Рё\n";
 
-        choice = getNumberInput<int>("Выберите действие: ", 1, 5);
+        choice = getNumberInput("Р’С‹Р±РµСЂРёС‚Рµ РѕРїС†РёСЋ: ", 1, 5);
 
         switch (choice) {
-        case 1: {
-            cout << "\nВыберите тип издания:\n";
-            cout << "1. Печатное издание\n";
-            cout << "2. Журнал\n";
-            cout << "3. Книга\n";
-            cout << "4. Учебник\n";
-
-            int editionType = getNumberInput<int>("", 1, 4);
-            PrintEdition* newEdition = nullptr;
-
-            switch (editionType) {
-            case 1: newEdition = createPrintEdition(); break;
-            case 2: newEdition = createMagazine(); break;
-            case 3: newEdition = createBook(); break;
-            case 4: newEdition = createTextbook(); break;
-            }
-
-            if (newEdition) {
-                collection.addEdition(newEdition);
-                cout << "Элемент добавлен успешно!" << endl;
-            }
-            break;
-        }
-        case 2: {
-            if (collection.size() == 0) {
-                cout << "Коллекция пуста!" << endl;
+            case 1: {
+                int type = getNumberInput("Р’С‹Р±РµСЂРёС‚Рµ С‚РёРї РёР·РґР°РЅРёСЏ (1-4): ", 1, 4);
+                collection.addEdition(createEdition(type));
+                cout << "РР·РґР°РЅРёРµ РґРѕР±Р°РІР»РµРЅРѕ!\n";
                 break;
             }
-
-            collection.displayAll();
-            int index = getNumberInput<int>("Введите индекс элемента для удаления: ", 0, collection.size() - 1);
-
-            if (collection.removeEdition(index)) {
-                cout << "Элемент удален успешно!" << endl;
-            }
-            else {
-                cout << "Не удалось удалить элемент. Проверьте индекс." << endl;
-            }
-            break;
-        }
-        case 3: {
-            collection.displayAll();
-            break;
-        }
-        case 4: {
-            if (collection.size() < 2) {
-                cout << "Для сравнения нужно минимум два элемента!" << endl;
+            case 2: {
+                if (collection.size() == 0) {
+                    cout << "РљРѕР»Р»РµРєС†РёСЏ РїСѓСЃС‚Р°!\n";
+                    break;
+                }
+                collection.displayAll();
+                int index = getNumberInput("Р’РІРµРґРёС‚Рµ РёРЅРґРµРєСЃ РёР·РґР°РЅРёСЏ РґР»СЏ СѓРґР°Р»РµРЅРёСЏ: ", 0, collection.size() - 1);
+                if (collection.removeEdition(index)) cout << "РР·РґР°РЅРёРµ СѓРґР°Р»РµРЅРѕ!\n";
+                else cout << "РћС€РёР±РєР° СѓРґР°Р»РµРЅРёСЏ.\n";
                 break;
             }
-
-            collection.displayAll();
-            int index1 = getNumberInput<int>("Введите индекс первого элемента: ", 0, collection.size() - 1);
-            int index2 = getNumberInput<int>("Введите индекс второго элемента: ", 0, collection.size() - 1);
-
-            collection.compareEditions(index1, index2);
-            break;
-        }
-        case 5:
-            cout << "Выход из программы..." << endl;
-            break;
+            case 3: collection.displayAll(); break;
+            case 4: {
+                if (collection.size() < 2) {
+                    cout << "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РёР·РґР°РЅРёР№ РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ!\n";
+                    break;
+                }
+                collection.displayAll();
+                int index1 = getNumberInput("Р’РІРµРґРёС‚Рµ РёРЅРґРµРєСЃ РїРµСЂРІРѕРіРѕ РёР·РґР°РЅРёСЏ: ", 0, collection.size() - 1);
+                int index2 = getNumberInput("Р’РІРµРґРёС‚Рµ РёРЅРґРµРєСЃ РІС‚РѕСЂРѕРіРѕ РёР·РґР°РЅРёСЏ: ", 0, collection.size() - 1);
+                collection.compareEditions(index1, index2);
+                break;
+            }
+            case 5: cout << "Р’С‹С…РѕРґ...\n"; break;
         }
     } while (choice != 5);
 
