@@ -1,237 +1,134 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <memory>
 
 using namespace std;
 
-class PrintEdition {
+class PrintedEdition {
 protected:
+    int pages;
     string title;
-    int pageCount;
-
 public:
-    PrintEdition(const string& title = "", int pageCount = 0) : title(title), pageCount(max(pageCount, 0)) {}
-
-    virtual ~PrintEdition() = default;
-
-    virtual void display() const {
-        cout << "Название: " << title << ", Страниц: " << pageCount;
+    PrintedEdition() : pages(0), title("") {}
+    PrintedEdition(int p, const string& t) : pages(p), title(t) {}
+    virtual void print() const {
+        cout << "Title: " << title << ", Pages: " << pages << endl;
     }
-
-    virtual unique_ptr<PrintEdition> clone() const {
-        return make_unique<PrintEdition>(*this);
+    bool operator==(const PrintedEdition& other) const {
+        return pages == other.pages && title == other.title;
     }
-
-    virtual bool operator==(const PrintEdition& other) const {
-        return title == other.title && pageCount == other.pageCount;
+    PrintedEdition operator+(const PrintedEdition& other) const {
+        return PrintedEdition(pages + other.pages, title + " & " + other.title);
+    }
+    PrintedEdition& operator++() {
+        ++pages;
+        return *this;
     }
 };
 
-class Magazine : public PrintEdition {
-    string periodicity;
-    int issueNumber;
-
+class Magazine : public PrintedEdition {
 public:
-    Magazine(const string& title = "", int pageCount = 0, const string& periodicity = "", int issueNumber = 0)
-        : PrintEdition(title, pageCount), periodicity(periodicity), issueNumber(max(issueNumber, 0)) {}
-
-    void display() const override {
-        PrintEdition::display();
-        cout << ", Периодичность: " << periodicity << ", Номер выпуска: " << issueNumber;
-    }
-
-    unique_ptr<PrintEdition> clone() const override {
-        return make_unique<Magazine>(*this);
-    }
-
-    bool operator==(const PrintEdition& other) const override {
-        if (const auto* p = dynamic_cast<const Magazine*>(&other))
-            return PrintEdition::operator==(other) && periodicity == p->periodicity && issueNumber == p->issueNumber;
-        return false;
+    Magazine() : PrintedEdition() {}
+    Magazine(int p, const string& t) : PrintedEdition(p, t) {}
+    void print() const override {
+        cout << "Magazine: " << title << ", Pages: " << pages << endl;
     }
 };
 
-class Book : public PrintEdition {
-    string author;
-    int yearPublished;
-
+class Book : public PrintedEdition {
 public:
-    Book(const string& title = "", int pageCount = 0, const string& author = "", int yearPublished = 0)
-        : PrintEdition(title, pageCount), author(author), yearPublished(yearPublished < 0 || yearPublished > 2025 ? 0 : yearPublished) {}
-
-    void display() const override {
-        PrintEdition::display();
-        cout << ", Автор: " << author << ", Год издания: " << yearPublished;
-    }
-
-    unique_ptr<PrintEdition> clone() const override {
-        return make_unique<Book>(*this);
-    }
-
-    bool operator==(const PrintEdition& other) const override {
-        if (const auto* p = dynamic_cast<const Book*>(&other))
-            return PrintEdition::operator==(other) && author == p->author && yearPublished == p->yearPublished;
-        return false;
+    Book() : PrintedEdition() {}
+    Book(int p, const string& t) : PrintedEdition(p, t) {}
+    void print() const override {
+        cout << "Book: " << title << ", Pages: " << pages << endl;
     }
 };
 
-class Textbook : public PrintEdition {
-    string subject;
-    int gradeLevel;
-
+class Textbook : public PrintedEdition {
 public:
-    Textbook(const string& title = "", int pageCount = 0, const string& subject = "", int gradeLevel = 0)
-        : PrintEdition(title, pageCount), subject(subject), gradeLevel(gradeLevel < 1 || gradeLevel > 11 ? 0 : gradeLevel) {}
-
-    void display() const override {
-        PrintEdition::display();
-        cout << ", Предмет: " << subject << ", Класс: " << gradeLevel;
-    }
-
-    unique_ptr<PrintEdition> clone() const override {
-        return make_unique<Textbook>(*this);
-    }
-
-    bool operator==(const PrintEdition& other) const override {
-        if (const auto* p = dynamic_cast<const Textbook*>(&other))
-            return PrintEdition::operator==(other) && subject == p->subject && gradeLevel == p->gradeLevel;
-        return false;
+    Textbook() : PrintedEdition() {}
+    Textbook(int p, const string& t) : PrintedEdition(p, t) {}
+    void print() const override {
+        cout << "Textbook: " << title << ", Pages: " << pages << endl;
     }
 };
 
-template <typename T>
-T getNumberInput(const string& prompt, T minVal, T maxVal) {
-    T value;
+int getIntInput(const string& prompt) {
+    int value;
     while (true) {
         cout << prompt;
-        cin >> value;
-        if (cin.fail() || value < minVal || value > maxVal) {
-            cin.clear();
-            cin.ignore(1000, '\n');
-            cout << "Ошибка: введите число от " << minVal << " до " << maxVal << ".\n";
+        if (cin >> value) {
+            break;
         } else {
-            cin.ignore(1000, '\n');
-            return value;
+            cin.clear();
+            cin.ignore(10000, '\n');
+            cout << "Invalid input. Please enter a number." << endl;
         }
     }
+    return value;
 }
 
-class PrintEditionCollection {
-    vector<unique_ptr<PrintEdition>> editions;
-
-public:
-    void addEdition(unique_ptr<PrintEdition> edition) {
-        editions.push_back(move(edition));
-    }
-
-    bool removeEdition(size_t index) {
-        if (index < editions.size()) {
-            editions.erase(editions.begin() + index);
-            return true;
-        }
-        return false;
-    }
-
-    void displayAll() const {
-        if (editions.empty()) {
-            cout << "Коллекция пуста.\n";
-            return;
-        }
-        for (size_t i = 0; i < editions.size(); ++i) {
-            cout << i << ": ";
-            editions[i]->display();
-            cout << '\n';
-        }
-    }
-
-    bool compareEditions(size_t index1, size_t index2) const {
-        if (index1 >= editions.size() || index2 >= editions.size()) return false;
-        bool result = *editions[index1] == *editions[index2];
-        cout << "Издания " << (result ? "равны" : "не равны") << '\n';
-        return result;
-    }
-
-    size_t size() const { return editions.size(); }
-};
-
-unique_ptr<PrintEdition> createEdition(int type) {
-    string title, extra1, extra2;
-    int pageCount, extra3;
-
-    cin.ignore();
-    cout << "Введите название: ";
-    getline(cin, title);
-    pageCount = getNumberInput("Введите количество страниц: ", 0, 10000);
-
-    switch (type) {
-        case 1: return make_unique<PrintEdition>(title, pageCount);
-        case 2:
-            cout << "Введите периодичность: ";
-            getline(cin, extra1);
-            extra3 = getNumberInput("Введите номер выпуска: ", 1, 1000);
-            return make_unique<Magazine>(title, pageCount, extra1, extra3);
-        case 3:
-            cout << "Введите автора: ";
-            getline(cin, extra1);
-            extra3 = getNumberInput("Введите год издания: ", 0, 2025);
-            return make_unique<Book>(title, pageCount, extra1, extra3);
-        case 4:
-            cout << "Введите предмет: ";
-            getline(cin, extra1);
-            extra3 = getNumberInput("Введите класс (1-11): ", 1, 11);
-            return make_unique<Textbook>(title, pageCount, extra1, extra3);
-        default: return nullptr;
-    }
+string getStringInput(const string& prompt) {
+    string value;
+    cout << prompt;
+    cin >> value;
+    return value;
 }
 
 int main() {
-    PrintEditionCollection collection;
+    vector<PrintedEdition*> editions;
     int choice;
 
-    do {
-        cout << "\n=== Меню ===\n"
-             << "1. Добавить издание\n"
-             << "2. Удалить издание\n"
-             << "3. Показать все издания\n"
-             << "4. Сравнить издания\n"
-             << "5. Выйти\n";
+    while (true) {
+        cout << "1. Add new element\n2. Delete element by index\n3. Print all elements\n4. Compare two elements\n5. Exit\n";
+        choice = getIntInput("Enter your choice: ");
 
-        choice = getNumberInput("Выберите опцию: ", 1, 5);
+        if (choice == 1) {
+            int type = getIntInput("Enter type (1 - Magazine, 2 - Book, 3 - Textbook): ");
+            int pages = getIntInput("Enter number of pages: ");
+            string title = getStringInput("Enter title: ");
 
-        switch (choice) {
-            case 1: {
-                int type = getNumberInput("Выберите тип издания (1-4): ", 1, 4);
-                collection.addEdition(createEdition(type));
-                cout << "Издание добавлено!\n";
-                break;
+            if (type == 1) {
+                editions.push_back(new Magazine(pages, title));
+            } else if (type == 2) {
+                editions.push_back(new Book(pages, title));
+            } else if (type == 3) {
+                editions.push_back(new Textbook(pages, title));
             }
-            case 2: {
-                if (collection.size() == 0) {
-                    cout << "Коллекция пуста!\n";
-                    break;
+        } else if (choice == 2) {
+            int index = getIntInput("Enter index to delete: ");
+            if (index >= 0 && index < editions.size()) {
+                delete editions[index];
+                editions.erase(editions.begin() + index);
+            } else {
+                cout << "Invalid index." << endl;
+            }
+        } else if (choice == 3) {
+            for (size_t i = 0; i < editions.size(); ++i) {
+                editions[i]->print();
+            }
+        } else if (choice == 4) {
+            int index1 = getIntInput("Enter first index: ");
+            int index2 = getIntInput("Enter second index: ");
+            if (index1 >= 0 && index1 < editions.size() && index2 >= 0 && index2 < editions.size()) {
+                if (*editions[index1] == *editions[index2]) {
+                    cout << "Elements are equal." << endl;
+                } else {
+                    cout << "Elements are not equal." << endl;
                 }
-                collection.displayAll();
-                int index = getNumberInput("Введите индекс издания для удаления: ", 0, collection.size() - 1);
-                if (collection.removeEdition(index)) cout << "Издание удалено!\n";
-                else cout << "Ошибка удаления.\n";
-                break;
+            } else {
+                cout << "Invalid indices." << endl;
             }
-            case 3: collection.displayAll(); break;
-            case 4: {
-                if (collection.size() < 2) {
-                    cout << "Недостаточно изданий для сравнения!\n";
-                    break;
-                }
-                collection.displayAll();
-                int index1 = getNumberInput("Введите индекс первого издания: ", 0, collection.size() - 1);
-                int index2 = getNumberInput("Введите индекс второго издания: ", 0, collection.size() - 1);
-                collection.compareEditions(index1, index2);
-                break;
-            }
-            case 5: cout << "Выход...\n"; break;
+        } else if (choice == 5) {
+            break;
+        } else {
+            cout << "Invalid choice." << endl;
         }
-    } while (choice != 5);
+    }
+
+    for (auto& edition : editions) {
+        delete edition;
+    }
 
     return 0;
 }
