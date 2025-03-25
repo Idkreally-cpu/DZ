@@ -28,11 +28,11 @@ public:
 
 int main() {
     int size;
-    std::cout << "Введите размер массива: ";
+    std::cout << "Enter size: ";
     std::cin >> size;
 
     int* arr = new int[size];
-    std::cout << "Введите элементы массива: ";
+    std::cout << "Enter element: ";
     for (int i = 0; i < size; ++i) {
         std::cin >> arr[i];
     }
@@ -40,8 +40,8 @@ int main() {
     EvenCounter evenCounter;
     OddCounter oddCounter;
 
-    std::cout << "Количество чётных чисел: " << evenCounter.fold(arr, size) << std::endl;
-    std::cout << "Количество нечётных чисел: " << oddCounter.fold(arr, size) << std::endl;
+    std::cout << "Even counter: " << evenCounter.fold(arr, size) << std::endl;
+    std::cout << "Odd counter: " << oddCounter.fold(arr, size) << std::endl;
 
     delete[] arr;
 }
