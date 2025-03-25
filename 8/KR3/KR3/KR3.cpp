@@ -1,8 +1,14 @@
 #include <iostream>
 
-class EvenCounter {
+class Counter {
 public:
-    int fold(int arr[], int size) {
+    virtual int fold(int arr[], int size) = 0;  
+    virtual ~Counter() {}                       
+};
+
+class EvenCounter : public Counter {
+public:
+    int fold(int arr[], int size) override {
         int count = 0;
         for (int i = 0; i < size; ++i) {
             if (arr[i] % 2 == 0) {
@@ -13,9 +19,9 @@ public:
     }
 };
 
-class OddCounter {
+class OddCounter : public Counter {
 public:
-    int fold(int arr[], int size) {
+    int fold(int arr[], int size) override {
         int count = 0;
         for (int i = 0; i < size; ++i) {
             if (arr[i] % 2 != 0) {
@@ -32,16 +38,19 @@ int main() {
     std::cin >> size;
 
     int* arr = new int[size];
-    std::cout << "Enter element: ";
+    std::cout << "Enter elements: ";
     for (int i = 0; i < size; ++i) {
         std::cin >> arr[i];
     }
 
-    EvenCounter evenCounter;
-    OddCounter oddCounter;
+    Counter* counters[] = { new EvenCounter(), new OddCounter() };
 
-    std::cout << "Even counter: " << evenCounter.fold(arr, size) << std::endl;
-    std::cout << "Odd counter: " << oddCounter.fold(arr, size) << std::endl;
+    std::cout << "Even count: " << counters[0]->fold(arr, size) << std::endl;
+    std::cout << "Odd count: " << counters[1]->fold(arr, size) << std::endl;
 
+    delete counters[0];
+    delete counters[1];
     delete[] arr;
+
+    return 0;
 }
