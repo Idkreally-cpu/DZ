@@ -126,8 +126,7 @@ int main() {
         }
     }
 
-    for (auto& edition : editions) {
-        delete edition;
+editions.clear();
     }
 
     return 0;
