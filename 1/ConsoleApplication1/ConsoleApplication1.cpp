@@ -1,41 +1,20 @@
 #include <iostream>
+#include <string>
 
-using namespace std;
-
-class DynamicArray {
-private:
-    int* data;
-    int size;
-
-public:
-    DynamicArray(int size) : size(size) {
-        data = new int[size];
-        for (int i = 0; i < size; ++i) {
-            data[i] = 0;
+int main() {
+    try {
+        double a, b;
+        if (!(std::cin >> a >> b)) {
+            throw "Invalid input";
         }
-    }
-
-    ~DynamicArray() {
-        delete[] data;
-    }
-
-    DynamicArray(const DynamicArray& other) : size(other.size) {
-        data = new int[size];
-        for (int i = 0; i < size; ++i) {
-            data[i] = other.data[i] + 1;
+        if (b == 0) {
+            throw "Division by zero";
         }
-        cout << "Copied array with size " << size << std::endl;
+        std::cout << a / b << std::endl;
+    } catch (const char* e) {
+        std::cerr << "Error: " << e << std::endl;
+    } catch (...) {
+        std::cerr << "Unknown error" << std::endl;
     }
-
-    int getSize() const {
-        return size;
-    }
-
-    int get(int index) const {
-        return data[index];
-    }
-
-    void set(int index, int value) {
-        data[index] = value;
-    }
-};
+    return 0;
+}
