@@ -1,96 +1,73 @@
 #include <iostream>
-using namespace std;
+#include <string>
 
-class Point {
-private:
-    int x;
-    int y;
-    int z;
-    int SIZE;
-    int* arr;
-
+class Blacksmith {
 public:
-    Point() : x(0), y(0), z(0), SIZE(5), arr(new int[SIZE]) {}
+    virtual void forgeWeapon() = 0;
+    virtual ~Blacksmith() {}
+};
 
-    Point(int x, int y, int z, int SIZE) : x(x), y(y), z(z), SIZE(SIZE), arr(new int[SIZE]) {}
-
-    Point(const Point& other) : x(other.x), y(other.y), z(other.z), SIZE(other.SIZE), arr(new int[other.SIZE]) {
-        for (int i = 0; i < SIZE; i++) {
-            arr[i] = other.arr[i];
-            cout << arr[i] << endl;
-        }
+class ElfBlacksmith : public Blacksmith {
+public:
+    void forgeWeapon() override {
+        std::cout << "Elven sword forged\n";
     }
+};
 
-    ~Point() {
-        delete[] arr;
+class OrcBlacksmith : public Blacksmith {
+public:
+    void forgeWeapon() override {
+        std::cout << "Orcish axe forged\n";
     }
+};
 
-    int GetX() const { return x; }
-    int GetY() const { return y; }
-    int GetZ() const { return z; }
-
-    bool operator==(const Point& other) const {
-        return x == other.x && y == other.y && z == other.z;
-    }
-
-    bool operator!=(const Point& other) const {
-        return !(*this == other);
-    }
-
-    Point operator-(const Point& other) const {
-        return Point(x - other.x, y - other.y, z - other.z, SIZE);
-    }
-
-    Point& operator++() {
-        ++x;
-        ++y;
-        ++z;
-        return *this;
-    }
-
-    Point operator++(int) {
-        Point temp = *this;
-        ++(*this);
-        return temp;
-    }
-
-    Point& operator=(const Point& other) {
-        if (this != &other) {
-            x = other.x;
-            y = other.y;
-            z = other.z;
-            SIZE = other.SIZE;
-            delete[] arr;
-            arr = new int[SIZE];
-            for (int i = 0; i < SIZE; i++) {
-                arr[i] = other.arr[i];
-            }
-        }
-        return *this;
-    }
-
-    void FillArray() {
-        for (int i = 0; i < SIZE; i++) {
-            arr[i] = rand() % 11;
-        }
+class BlacksmithFactory {
+public:
+    static Blacksmith* createBlacksmith(const std::string& type) {
+        if (type == "elf") return new ElfBlacksmith();
+        if (type == "orc") return new OrcBlacksmith();
+        return nullptr;
     }
 };
 
 int main() {
-    Point a(3, 6, 9, 6);
-    a.FillArray();
+    Blacksmith* elfSmith = BlacksmithFactory::createBlacksmith("elf");
+    Blacksmith* orcSmith = BlacksmithFactory::createBlacksmith("orc");
+    
+    elfSmith->forgeWeapon();
+    orcSmith->forgeWeapon();
+    
+    delete elfSmith;
+    delete orcSmith;
+}
 
-    Point b(a);
+#include <iostream>
+#include <string>
 
-    Point c = a - b;
-    ++c;
-
-    if (a == b) {
-        cout << "a and b are equal" << endl;
+class Government {
+private:
+    static Government* instance;
+    Government() {}
+    
+public:
+    static Government* getInstance() {
+        if (!instance) {
+            instance = new Government();
+        }
+        return instance;
     }
-    else {
-        cout << "a and b are not equal" << endl;
+    
+    void govern() {
+        std::cout << "Governing the country\n";
     }
+    
+    Government(const Government&) = delete;
+    void operator=(const Government&) = delete;
+};
 
-    return 0;
+Government* Government::instance = nullptr;
+
+int main() {
+    Government* gov = Government::getInstance();
+    gov->govern();
 }
