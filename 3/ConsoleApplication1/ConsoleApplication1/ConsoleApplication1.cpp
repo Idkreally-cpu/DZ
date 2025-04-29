@@ -1,73 +1,33 @@
-#include <iostream>
-#include <string>
+using System;
 
-class Blacksmith {
-public:
-    virtual void forgeWeapon() = 0;
-    virtual ~Blacksmith() {}
-};
+class Program
+{
+    static void Main()
+    {
+        Console.Write("Введите количество строк: ");
+        int rows = int.Parse(Console.ReadLine());
+        Console.Write("Введите количество столбцов: ");
+        int cols = int.Parse(Console.ReadLine());
 
-class ElfBlacksmith : public Blacksmith {
-public:
-    void forgeWeapon() override {
-        std::cout << "Elven sword forged\n";
-    }
-};
+        int[,] array = new int[rows, cols];
 
-class OrcBlacksmith : public Blacksmith {
-public:
-    void forgeWeapon() override {
-        std::cout << "Orcish axe forged\n";
-    }
-};
-
-class BlacksmithFactory {
-public:
-    static Blacksmith* createBlacksmith(const std::string& type) {
-        if (type == "elf") return new ElfBlacksmith();
-        if (type == "orc") return new OrcBlacksmith();
-        return nullptr;
-    }
-};
-
-int main() {
-    Blacksmith* elfSmith = BlacksmithFactory::createBlacksmith("elf");
-    Blacksmith* orcSmith = BlacksmithFactory::createBlacksmith("orc");
-    
-    elfSmith->forgeWeapon();
-    orcSmith->forgeWeapon();
-    
-    delete elfSmith;
-    delete orcSmith;
-}
-
-#include <iostream>
-#include <string>
-
-class Government {
-private:
-    static Government* instance;
-    Government() {}
-    
-public:
-    static Government* getInstance() {
-        if (!instance) {
-            instance = new Government();
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+            {
+                Console.Write($"Введите элемент [{i},{j}]: ");
+                array[i, j] = int.Parse(Console.ReadLine());
+            }
         }
-        return instance;
-    }
-    
-    void govern() {
-        std::cout << "Governing the country\n";
-    }
-    
-    Government(const Government&) = delete;
-    void operator=(const Government&) = delete;
-};
 
-Government* Government::instance = nullptr;
-
-int main() {
-    Government* gov = Government::getInstance();
-    gov->govern();
+        Console.WriteLine("Массив в обратном порядке:");
+        for (int i = rows - 1; i >= 0; i--)
+        {
+            for (int j = cols - 1; j >= 0; j--)
+            {
+                Console.Write(array[i, j] + " ");
+            }
+            Console.WriteLine();
+        }
+    }
 }
