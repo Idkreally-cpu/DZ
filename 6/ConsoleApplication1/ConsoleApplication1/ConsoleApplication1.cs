@@ -1,43 +1,16 @@
 using System;
 
-class Company
+public class Student
 {
-    public string Name { get; set; }
-    public string Address { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string Performance { get; set; }
 }
 
-class User
+public static class StudentExtensions
 {
-    public string Name { get; set; }
-    public Company Company { get; set; }
-}
-
-class Program
-{
-    static void Main()
+    public static void PrintInfo(this Student student)
     {
-        User user1 = new User { Name = "Иван Иванов" };
-        User user2 = new User 
-        { 
-            Name = "Петр Петров", 
-            Company = new Company { Name = "ООО Ромашка" } 
-        };
-        User user3 = new User 
-        { 
-            Name = "Сидор Сидоров", 
-            Company = new Company { Name = "ИП Солнышко", Address = "ул. Ленина, 1" } 
-        };
-
-        DisplayUserInfo(user1);
-        DisplayUserInfo(user2);
-        DisplayUserInfo(user3);
-    }
-
-    static void DisplayUserInfo(User user)
-    {
-        Console.WriteLine($"Пользователь: {user.Name}");
-        Console.WriteLine($"Компания: {user.Company?.Name ?? "не указана"}");
-        Console.WriteLine($"Адрес: {user.Company?.Address ?? "не указан"}");
-        Console.WriteLine();
+        Console.WriteLine($"{student.FirstName} {student.LastName}: {student.Performance}");
     }
 }
