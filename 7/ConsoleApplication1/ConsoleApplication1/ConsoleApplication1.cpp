@@ -38,12 +38,12 @@ void DFS_iterative(int start, const vector<vector<int>>& graph) {
 
 int main() {
     vector<vector<int>> graph = {
-        {1, 2},     // 0 соединен с 1 и 2
-        {0, 3, 4},  // 1 соединен с 0, 3, 4
-        {0, 5},     // 2 соединен с 0, 5
-        {1},        // 3 соединен с 1
-        {1},        // 4 соединен с 1
-        {2}         // 5 соединен с 2
+        {1, 2},     
+        {0, 3, 4},  
+        {0, 5},     
+        {1},        
+        {1},        
+        {2}         
     };
     
     vector<bool> visited(graph.size(), false);
